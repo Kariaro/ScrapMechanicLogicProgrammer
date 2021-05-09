@@ -181,9 +181,7 @@ public class LogicWireGroup {
 			wire.group = group;
 		}
 	}
-
-
-	// Propagate a wire and get all wires connected to that one
+	
 	protected static Set<Long> propagate(LogicSystem system, LogicWire wire) {
 		Set<Long> visited = new HashSet<>();
 		LinkedList<Long> list = new LinkedList<>(wire.getConnections());
@@ -199,8 +197,7 @@ public class LogicWireGroup {
 		
 		return visited;
 	}
-
-	// Propagate a wire and get all wires connected to that one
+	
 	protected static boolean propagateFind(LogicSystem system, LogicWire wire, Set<Long> visited, long find_index) {
 		Set<Long> set = wire.getConnections();
 		if(set.contains(find_index)) {
@@ -222,6 +219,6 @@ public class LogicWireGroup {
 			list.addAll(set);
 		}
 		
-		return visited.contains(find_index);
+		return false;
 	}
 }

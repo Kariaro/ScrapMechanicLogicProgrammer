@@ -11,27 +11,27 @@ public class LogicGate implements LogicObject {
 	protected final LogicSystem system;
 	protected final LogicGateWire wire;
 	protected transient boolean removed;
-	protected LogicGateType type;
+	protected LogicObjectType type;
 	protected long index;
 	protected int inputs;
 	protected int outputs;
 	
-	protected LogicGate(LogicSystem system, long index, LogicGateType type) {
+	protected LogicGate(LogicSystem system, long index, LogicObjectType type) {
 		this.system = Objects.requireNonNull(system);
 		this.type = Objects.requireNonNull(type);
 		this.index = index;
 		this.wire = new LogicGateWire(system, this, index);
-		system.wires.put(index, wire);
+		//system.wires.put(index, wire);
 		
 		inputs = type.getInputs();
 		outputs = type.getOutputs();
 	}
 	
-	public LogicGateType getGateType() {
+	public LogicObjectType getGateType() {
 		return type;
 	}
 	
-	public void setGateType(LogicGateType type) {
+	public void setGateType(LogicObjectType type) {
 		this.type = Objects.requireNonNull(type);
 	}
 	
@@ -76,19 +76,20 @@ public class LogicGate implements LogicObject {
 	public boolean setLocation(int x, int y) {
 		if(removed) return false;
 		
-		if(system.hasGate(x, y)
-		|| system.hasWire(x, y)) {
+		if(system.hasObject(x, y)) {
 			// We cannot move the gate to this position because there
 			// exists another gate.
 			return false;
 		}
 		
 		long new_index = LogicSystem.get_index(x, y);
+		if(new_index == index) return true;
 		system.gates.remove(index);
 		system.gates.put(new_index, this);
 		index = new_index;
 		
-		return wire.setLocation(x, y);
+		//return wire.setLocation(x, y);
+		return true;
 	}
 	
 	@Override

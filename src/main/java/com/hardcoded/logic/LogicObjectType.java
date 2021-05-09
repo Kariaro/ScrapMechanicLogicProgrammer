@@ -1,12 +1,15 @@
 package com.hardcoded.logic;
 
-public enum LogicGateType {
+public enum LogicObjectType {
 	OR,
 	XOR,
 	AND,
 	NOR,
 	XNOR,
 	NAND,
+	
+	WIRE,
+	
 	SWITCH,
 	CUSTOM,
 	
@@ -14,11 +17,11 @@ public enum LogicGateType {
 	
 	private final int inputs;
 	private final int outputs;
-	private LogicGateType(int inputs, int outputs) {
+	private LogicObjectType(int inputs, int outputs) {
 		this.inputs = inputs;
 		this.outputs = outputs;
 	}
-	private LogicGateType() {
+	private LogicObjectType() {
 		inputs = 2;
 		outputs = 1;
 	}

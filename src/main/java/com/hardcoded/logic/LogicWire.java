@@ -53,13 +53,14 @@ public class LogicWire implements LogicObject {
 	public boolean setLocation(int x, int y) {
 		if(removed) return false;
 		
-		if(system.hasWire(x, y)) {
+		if(system.hasObject(x, y)) {
 			// We cannot move the wire to this position because there
 			// exists another wire
 			return false;
 		}
-
+		
 		long new_index = LogicSystem.get_index(x, y);
+		if(new_index == index) return true;
 		
 		{ // Update the connections to allow the new position
 			Iterator<Long> iter = connections.iterator();
@@ -107,12 +108,6 @@ public class LogicWire implements LogicObject {
 		return connections.contains(wire.getIndex());
 	}
 	
-	/**
-	 * Permanently remove this node from the system.
-	 * 
-	 * <p>If this wire has two connections then they will connect with eachother.
-	 * Otherwise all wires will be disconnected.
-	 */
 	@Override
 	public void remove() {
 		if(removed) return;
@@ -122,21 +117,6 @@ public class LogicWire implements LogicObject {
 		system.wires.remove(index);
 		
 		Iterator<Long> iter = connections.iterator();
-//		if(connections.size() == 2) {
-//			// We should connect those two nodes together
-//			long i1 = iter.next();
-//			long i2 = iter.next();
-//			
-//			LogicWire n1 = system.getWire(i1);
-//			LogicWire n2 = system.getWire(i2);
-//			
-//			n1.remove(index);
-//			n2.remove(index);
-//			
-//			n1.add(n2.getIndex());
-//			n2.add(n1.getIndex());
-//		}
-		
 		while(iter.hasNext()) {
 			long id = iter.next();
 			LogicWire node = system.getWire(id);

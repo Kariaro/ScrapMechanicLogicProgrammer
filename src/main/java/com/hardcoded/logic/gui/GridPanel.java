@@ -25,9 +25,9 @@ public class GridPanel extends JPanel {
 	
 	private static final ColorMap colors = Gui.getColors();
 	private static final TexturePaint DOTS_TEXTURE;
-	protected static final int DOTS_SPACING = 15;
-	protected static final int DOTS_RADIUS = 1;
-	protected static final int WIRE_RADIUS = 4;
+	public static final int DOTS_SPACING = 15;
+	public static final int DOTS_RADIUS = 1;
+	public static final int WIRE_RADIUS = 4;
 	
 	static {
 		int size = 4;
@@ -78,7 +78,7 @@ public class GridPanel extends JPanel {
 		addKeyListener(listener);
 		
 		int idx = 0;
-		for(LogicGateType type : LogicGateType.values()) {
+		for(LogicObjectType type : LogicObjectType.values()) {
 			LogicGate obj = system.addGate(0, (idx++) * 6, type);
 			LogicGateComponent comp = new LogicGateComponent(obj);
 			add(comp);
@@ -89,21 +89,55 @@ public class GridPanel extends JPanel {
 			int ry = 0;
 			
 			java.util.Random random = new java.util.Random();
+			random.nextInt();
 			
-			LogicWire last = addWire(rx, ry);
+			LogicWireComponent last = addWire(rx, ry);
 			
-			for(int i = 0; i < 40; i++) {
-				int xp = rx + random.nextInt(10) - 5;
-				int yp = ry + random.nextInt(10) - 5;
+//			for(int i = 0; i < 1000; i++) {
+//				int xp = rx + random.nextInt(10) - 5;
+//				int yp = ry + random.nextInt(10) - 5;
+//				
+//				LogicWireComponent wire = addWire(xp, yp);
+//				
+//				if(wire == null) {
+//					i--;
+//					continue;
+//				}
+//				
+//				if(last == null) {
+//					last = wire;
+//					i--;
+//					continue;
+//				}
+//				
+//				if(!system.connectWire(last.getLogicObject(), wire.getLogicObject())) {
+//					System.err.println("Failed to connect wires!");
+//				}
+//				
+//				last = wire;
+//				
+//				rx = xp;
+//				ry = yp;
+//			}
+			
+			for(int i = 0; i < 100; i++) {
+				int xp = rx++ + 1;
+				int yp = ry + 0;
 				
-				LogicWire wire = addWire(xp, yp);
+				LogicWireComponent wire = addWire(xp, yp);
 				
 				if(wire == null) {
 					i--;
 					continue;
 				}
 				
-				if(!system.connectWire(last, wire)) {
+				if(last == null) {
+					last = wire;
+					i--;
+					continue;
+				}
+				
+				if(!system.connectWire(last.getLogicObject(), wire.getLogicObject())) {
 					System.err.println("Failed to connect wires!");
 				}
 				
@@ -123,16 +157,20 @@ public class GridPanel extends JPanel {
 	private double zoom = 1;
 	private double x;
 	private double y;
-	protected void setWorldPosition(double x, double y) {
+	public void setWorldPosition(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
 	
-	protected void setWorldZoom(double zoom) {
+	public void setWorldZoom(double zoom) {
 		this.zoom = zoom;
 	}
 	
-	protected LogicComponent getLogicComponent(double pwx, double pwy) {
+	public LogicSystem getSystem() {
+		return system;
+	}
+	
+	public LogicComponent getLogicComponent(double pwx, double pwy) {
 		for(LogicComponent c : list) {
 			if(c.containsPoint(pwx, pwy)) return c;
 		}
@@ -167,8 +205,16 @@ public class GridPanel extends JPanel {
 		return result == null ? Collections.emptyList():result;
 	}
 	
-	public void setMouseCreate(LogicGateType type) {
+	public void setMouseCreate(LogicObjectType type) {
+		if(type.isGate()) {
+			listener.removeSelection();
+			listener.setState(GridPanelListener.State.CREATE_GATE, type);
+		}
 		
+		if(type == LogicObjectType.WIRE) {
+			listener.removeSelection();
+			listener.setState(GridPanelListener.State.CREATE_WIRE);
+		}
 	}
 	
 	protected void add(LogicComponent comp) {
@@ -191,8 +237,8 @@ public class GridPanel extends JPanel {
 		g.setColor(colors.get(ColorPrefs.LOGIC_PANEL_BG));
 		g.fillRect(0, 0, getWidth(), getHeight());
 		
-		System.out.println("State: " + listener.state);
-		
+//		System.out.println("Comps: " + list.size());
+//		System.out.printf("Grid: %s, %s, State: %s\n", system.hasObject(0), system.getLogicObject(0, -1), listener.getState());
 		{
 			g.setColor(Color.lightGray);
 			int xp = (int)(x * zoom);
@@ -231,7 +277,6 @@ public class GridPanel extends JPanel {
 	
 	@Override
 	protected void paintChildren(Graphics gr) {
-		// Wrapping this call to make sure that the child components also change with this panel
 		Graphics2D g = (Graphics2D)gr.create();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -243,20 +288,6 @@ public class GridPanel extends JPanel {
 		
 //		g.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 //		g.setColor(new Color(0x11bb77));
-//		for(LogicWire n1 : system.getWires()) {
-//			for(long index : n1.getConnections()) {
-//				LogicWire n2 = system.getWire(index);
-//				if(n2 == null) continue;
-//				
-//				g.drawLine(
-//					n1.getX() * DOTS_SPACING,
-//					n1.getY() * DOTS_SPACING,
-//					n2.getX() * DOTS_SPACING,
-//					n2.getY() * DOTS_SPACING
-//				);
-//			}
-//		}
-//		
 //		g.setColor(new Color(0x18ffaa).brighter());
 //		for(LogicWire n1 : system.getWires()) {
 //			if(n1 instanceof LogicGateWire) continue;
@@ -283,10 +314,21 @@ public class GridPanel extends JPanel {
 		g.dispose();
 	}
 
-	public LogicWire addWire(int plx, int ply) {
+	public LogicWireComponent addWire(int plx, int ply) {
 		LogicWire wire = system.addWire(plx, ply);
 		if(wire == null) return null;
-		add(new LogicWireComponent(wire));
-		return wire;
+		
+		LogicWireComponent comp = new LogicWireComponent(wire);
+		add(comp);
+		return comp;
+	}
+	
+	public LogicGateComponent addGate(int plx, int ply, LogicObjectType type) {
+		LogicGate gate = system.addGate(plx, ply, type);
+		if(gate == null) return null;
+		
+		LogicGateComponent comp = new LogicGateComponent(gate);
+		add(comp);
+		return comp;
 	}
 }

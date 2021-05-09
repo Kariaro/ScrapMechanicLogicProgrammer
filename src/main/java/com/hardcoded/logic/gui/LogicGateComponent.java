@@ -87,12 +87,13 @@ public class LogicGateComponent extends LogicComponent {
 				gate.getX() * GridPanel.DOTS_SPACING,
 				gate.getY() * GridPanel.DOTS_SPACING
 			);
+			
+			last_index = gate.getIndex();
 		}
 	}
 	
 	@Override
 	public void setLocation(double x, double y) {
-		// Try set the location of the gate
 		gate.setLocation(
 			(int)(x / (GridPanel.DOTS_SPACING + 0.0)),
 			(int)(y / (GridPanel.DOTS_SPACING + 0.0))
@@ -108,8 +109,8 @@ public class LogicGateComponent extends LogicComponent {
 	public void paint(Graphics2D g) {
 		if(gate == null) return;
 		
-		LogicGateType type = gate.getGateType();
-		gate.setInputs(4);
+		LogicObjectType type = gate.getGateType();
+		gate.setInputs(2);
 		
 		if(hasFocus()) {
 			g.setColor(new Color(0, 0, 0, 0.5f));

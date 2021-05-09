@@ -17,6 +17,10 @@ public class LogicSystem {
 		return ID.getAndIncrement();
 	}
 	
+	// TODO: Instead of using "wires" and "gates" switch over to using "objects".
+	//       We can still access wires by checking if the returned type is an instanceof of that class.
+	//       This would make saving the data easier because gates and wires cannot be on the same position eitherway.
+	//protected Map<Long, LogicObject> objects;
 	protected Map<Long, LogicWire> wires;
 	protected Map<Long, LogicGate> gates;
 	protected Map<Long, LogicWireGroup> groups;
@@ -25,35 +29,11 @@ public class LogicSystem {
 		wires = new HashMap<>();
 		gates = new HashMap<>();
 		groups = new HashMap<>();
+		//objects = new HashMap<>();
 	}
 	
 	public Collection<LogicWire> getWires() {
 		return wires.values();
-	}
-	
-	public LogicGate getGate(long index) {
-		return gates.get(index);
-	}
-	
-	public boolean hasGate(int x, int y) {
-		return gates.containsKey(get_index(x, y));
-	}
-	
-	public LogicGate addGate(int x, int y, LogicGateType type) {
-		if(hasWire(x, y) || hasGate(x, y)) return null;
-		long index = get_index(x, y);
-		
-		LogicGate object = new LogicGate(this, index, type);
-		gates.put(index, object);
-		return object;
-	}
-	
-	public LogicWire getWire(int x, int y) {
-		return getWire(get_index(x, y));
-	}
-	
-	public LogicWire getWire(long index) {
-		return wires.get(index);
 	}
 	
 	public boolean hasWire(int x, int y) {
@@ -64,9 +44,62 @@ public class LogicSystem {
 		return wires.containsKey(index);
 	}
 	
+	
+	public boolean hasGate(int x, int y) {
+		return hasGate(get_index(x, y));
+	}
+	
+	public boolean hasGate(long index) {
+		return gates.containsKey(index);
+	}
+	
+	
+	public boolean hasObject(int x, int y) {
+		return hasObject(get_index(x, y));
+	}
+	
+	public boolean hasObject(long index) {
+		return hasWire(index) || hasGate(index);
+	}
+	
+	
+	public LogicGate getGate(int x, int y) {
+		return getGate(get_index(x, y));
+	}
+	
+	public LogicGate getGate(long index) {
+		return gates.get(index);
+	}
+	
+	public LogicWire getWire(int x, int y) {
+		return getWire(get_index(x, y));
+	}
+	
+	public LogicWire getWire(long index) {
+		return wires.get(index);
+	}
+	
+	public LogicObject getLogicObject(int x, int y) {
+		return getLogicObject(get_index(x, y));
+	}
+	
+	public LogicObject getLogicObject(long index) {
+		if(hasWire(index)) return getWire(index);
+		return getGate(index);
+	}
+	
+	public LogicGate addGate(int x, int y, LogicObjectType type) {
+		if(hasObject(x, y)) return null;
+		long index = get_index(x, y);
+		
+		LogicGate object = new LogicGate(this, index, type);
+		gates.put(index, object);
+		return object;
+	}
+	
 	public LogicWire addWire(int x, int y) {
 		long index = get_index(x, y);
-		if(hasWire(index)) return null;
+		if(hasObject(index)) return null;
 		
 		LogicWire wire = new LogicWire(this, index);
 		wires.put(index, wire);

@@ -24,27 +24,13 @@ public class LogicWireComponent extends LogicComponent {
 	}
 	
 	@Override
-	public void setRotation(int rotation) {
+	public void setRotation(LogicRotation rotation) {
 		// Remove rotations
 	}
 	
 	@Override
 	public LogicWire getLogicObject() {
 		return wire;
-	}
-	
-	@Override
-	public void setLocation(double x, double y) {
-		// Try set the location of the gate
-		wire.setLocation(
-			(int)(x / (GridPanel.DOTS_SPACING + 0.0)),
-			(int)(y / (GridPanel.DOTS_SPACING + 0.0))
-		);
-		
-		super.setLocation(
-			wire.getX() * GridPanel.DOTS_SPACING,
-			wire.getY() * GridPanel.DOTS_SPACING
-		);
 	}
 	
 	@Override
@@ -56,7 +42,22 @@ public class LogicWireComponent extends LogicComponent {
 				wire.getX() * GridPanel.DOTS_SPACING,
 				wire.getY() * GridPanel.DOTS_SPACING
 			);
+			
+			last_index = wire.getIndex();
 		}
+	}
+	
+	@Override
+	public void setLocation(double x, double y) {
+		wire.setLocation(
+			(int)(x / (GridPanel.DOTS_SPACING + 0.0)),
+			(int)(y / (GridPanel.DOTS_SPACING + 0.0))
+		);
+		
+		super.setLocation(
+			wire.getX() * GridPanel.DOTS_SPACING,
+			wire.getY() * GridPanel.DOTS_SPACING
+		);
 	}
 	
 	@Override
@@ -83,14 +84,12 @@ public class LogicWireComponent extends LogicComponent {
 		}
 		
 		int oo = GridPanel.DOTS_SPACING / 2;
-		g.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		g.setColor(new Color(0x11bb77));
 		for(long index : wire.getConnections()) {
 			if(index < wire.getIndex()) continue;
 			
 			LogicWire n2 = wire.getSystem().getWire(index);
-			if(n2 == null) continue;
-			
 			int xp = n2.getX() - wire.getX();
 			int yp = n2.getY() - wire.getY();
 			g.drawLine(
@@ -109,7 +108,8 @@ public class LogicWireComponent extends LogicComponent {
 		}
 		
 		g.setColor(Color.green);
-		g.setStroke(new BasicStroke(4));
-		g.drawOval(0, 0, 15, 15);
+		g.setColor(new Color(0x11bb77));
+		g.setStroke(new BasicStroke(2));
+		g.fillOval(4, 4, 7, 7);
 	}
 }

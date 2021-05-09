@@ -2,48 +2,36 @@ package com.hardcoded.logic.gui;
 
 import java.awt.Point;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.hardcoded.logic.LogicObject;
+import com.hardcoded.logic.LogicObjectType;
 import com.hardcoded.logic.LogicWire;
+import com.hardcoded.logic.gui.listener.AbstractGridListener;
 
-public class GridPanelListener implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
-	private final GridPanel grid;
-	public State state;
-	
-	// World position
-	private double zoom = 1;
-	private double world_x;
-	private double world_y;
-	
-	// Scrolling
-	private double ms;
-	private double ms_c = 1;
-	
-	// The pointing position
-	private double pwx, pwy;
-	
-	private boolean dragging = false;
-	private boolean pressing = false;
-	
-	private final List<LogicComponent> selection;
-	private Selection selection_area = new Selection();
-	
+public class GridPanelListener extends AbstractGridListener {
 	protected GridPanelListener(GridPanel grid) {
-		this.grid = grid;
-		this.selection = new ArrayList<>();
-		this.state = State.NORMAL;
+		super(grid, grid.getSystem());
 	}
 	
 	@Override
-	public void mousePressed(MouseEvent e) {
+	public void onMousePressed(LogicMouseEvent e) {
 		pressing = true;
 		
-		pwx = -world_x + (e.getX() / zoom);
-		pwy = -world_y + (e.getY() / zoom);
+		//pwx = -world_x + (e.getX() / zoom);
+		//pwy = -world_y + (e.getY() / zoom);
 		
-		LogicComponent comp = grid.getLogicComponent(pwx, pwy);
+		switch(state) {
+			case CREATE_GATE:
+			case CREATE_WIRE: {
+				
+				// Put state back to normal? Select?
+				break;
+			}
+			default:
+		}
+		
+		LogicComponent comp = grid.getLogicComponent(e.getWorldX(), e.getWorldY());
 		if(comp != null) {
 			setSelection(comp);
 			grid.repaint();
@@ -61,8 +49,8 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 			
 			if(e.isControlDown()) {
 				state = State.CREATE_SELECTION;
-				selection_area.setPos1(pwx, pwy);
-				selection_area.setPos2(pwx, pwy);
+				selection_area.setPos1(e.getWorldX(), e.getWorldY());
+				selection_area.setPos2(e.getWorldX(), e.getWorldY());
 			} else {
 				grid.setSelection(null);
 			}
@@ -71,39 +59,8 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 		grid.repaint();
 	}
 	
-	private void setSelection(LogicComponent comp) {
-		if(!selection.isEmpty()) {
-			for(LogicComponent c : selection) {
-				c.setFocus(false);
-			}
-			selection.clear();
-		}
-		
-		comp.setFocus(true);
-		selection.add(comp);
-		state = State.HAS_SELECTION;
-		grid.repaint();
-	}
-	
-	private void setSelection(List<LogicComponent> list) {
-		if(!selection.isEmpty()) {
-			for(LogicComponent c : selection) {
-				c.setFocus(false);
-			}
-			selection.clear();
-		}
-		
-		for(LogicComponent c : list) {
-			c.setFocus(true);
-		}
-		
-		selection.addAll(list);
-		state = State.HAS_SELECTION;
-		grid.repaint();
-	}
-	
 	@Override
-	public void mouseReleased(MouseEvent e) {
+	public void onMouseReleased(LogicMouseEvent e) {
 		dragging = false;
 		pressing = false;
 		
@@ -153,12 +110,10 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 	}
 	
 	@Override
-	public void mouseDragged(MouseEvent e) {
+	public void onMouseDragged(LogicMouseEvent e) {
 		switch(state) {
 			case CREATE_SELECTION: {
-				double wx = -world_x + (e.getX() / zoom);
-				double wy = -world_y + (e.getY() / zoom);
-				selection_area.setPos2(wx, wy);
+				selection_area.setPos2(e.getWorldX(), e.getWorldY());
 				
 				grid.setSelection(selection_area);
 				grid.repaint();
@@ -170,10 +125,8 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 				LogicComponent sel_logic = selection.get(0); // FIXME
 				
 				dragging = true;
-				double dx = -world_x + (e.getX() / zoom);
-				double dy = -world_y + (e.getY() / zoom);
-				double rx = (int)(dx / (GridPanel.DOTS_SPACING + 0.0)) * GridPanel.DOTS_SPACING;
-				double ry = (int)(dy / (GridPanel.DOTS_SPACING + 0.0)) * GridPanel.DOTS_SPACING;
+				double rx = (int)(e.getWorldX() / (GridPanel.DOTS_SPACING + 0.0)) * GridPanel.DOTS_SPACING;
+				double ry = (int)(e.getWorldY() / (GridPanel.DOTS_SPACING + 0.0)) * GridPanel.DOTS_SPACING;
 				
 				sel_logic.setLocation(rx, ry);
 				// System.out.printf("Logic: { %d, %d, %d, %d }\n", (int)rx, (int)ry, sel_logic.getX(), sel_logic.getY());
@@ -186,22 +139,16 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 				LogicWireComponent comp = (LogicWireComponent)selection.get(0);
 				LogicWire wire = comp.getLogicObject();
 				
-				double dx = -world_x + (e.getX() / zoom);
-				double dy = -world_y + (e.getY() / zoom);
-				double rx = (int)(dx / (GridPanel.DOTS_SPACING + 0.0)) * GridPanel.DOTS_SPACING;
-				double ry = (int)(dy / (GridPanel.DOTS_SPACING + 0.0)) * GridPanel.DOTS_SPACING;
-				int plx = (int)(rx / GridPanel.DOTS_SPACING);
-				int ply = (int)(ry / GridPanel.DOTS_SPACING);
+				int plx = e.getLogicX();
+				int ply = e.getLogicY();
+				double rx = plx * GridPanel.DOTS_SPACING;
+				double ry = ply * GridPanel.DOTS_SPACING;
 				
 				if(!grid.system.hasWire(plx, ply)) {
-					LogicWire w2 = grid.addWire(plx, ply);
+					LogicWireComponent new_comp = grid.addWire(plx, ply);
+					LogicWire w2 = new_comp.getLogicObject();
 					grid.system.connectWire(w2, wire);
-					
-					comp.setFocus(false);
-					
-					// NODE: This seams like it could give errors or some rare exception at some point.
-					comp = (LogicWireComponent)grid.getLogicComponent(rx, ry);
-					setSelection(comp);
+					setSelection(new_comp);
 				} else {
 					comp.setLocation(rx, ry);
 				}
@@ -213,14 +160,8 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 			case CONNECT_WIRE: {
 				// Connecting a wire can only be done from a single selection
 				LogicWireComponent comp = (LogicWireComponent)selection.get(0);
-				
-				double dx = -world_x + (e.getX() / zoom);
-				double dy = -world_y + (e.getY() / zoom);
-				double rx = (int)((dx) / (GridPanel.DOTS_SPACING + 0.0)) * GridPanel.DOTS_SPACING;
-				double ry = (int)((dy) / (GridPanel.DOTS_SPACING + 0.0)) * GridPanel.DOTS_SPACING;
-				
-				int plx = (int)(rx / GridPanel.DOTS_SPACING);
-				int ply = (int)(ry / GridPanel.DOTS_SPACING);
+				int plx = e.getLogicX();
+				int ply = e.getLogicY();
 				
 				comp.setWireDrag(plx, ply);
 				grid.repaint();
@@ -243,12 +184,55 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 	}
 	
 	@Override
-	public void mouseMoved(MouseEvent e) {
-		
+	public void onMouseMoved(LogicMouseEvent e) {
+		switch(state) {
+			case CREATE_WIRE: {
+				int plx = e.getLogicX();
+				int ply = e.getLogicY();
+				double rx = plx * GridPanel.DOTS_SPACING;
+				double ry = ply * GridPanel.DOTS_SPACING;
+				
+				if(selection.isEmpty()) {
+					LogicWireComponent comp = grid.addWire(plx, ply);
+					if(comp != null) {
+						selection.add(comp);
+						grid.repaint();
+					}
+				} else {
+					selection.get(0).setLocation(rx, ry);
+					grid.repaint();
+				}
+				
+				break;
+			}
+			
+			case CREATE_GATE: {
+				int plx = e.getLogicX();
+				int ply = e.getLogicY();
+				double rx = plx * GridPanel.DOTS_SPACING;
+				double ry = ply * GridPanel.DOTS_SPACING;
+				
+				if(selection.isEmpty()) {
+					LogicGateComponent comp = grid.addGate(plx, ply, (LogicObjectType)state_data);
+					if(comp != null) {
+						selection.add(comp);
+					}
+					
+					grid.repaint();
+				} else {
+					selection.get(0).setLocation(rx, ry);
+					grid.repaint();
+				}
+				
+				break;
+			}
+			
+			default:
+		}
 	}
 	
 	@Override
-	public void keyPressed(KeyEvent e) {
+	public void onKeyPressed(KeyEvent e) {
 		if(e.getKeyCode() == KeyEvent.VK_DELETE) {
 			for(LogicComponent comp : selection) {
 				LogicObject logic = comp.getLogicObject();
@@ -285,37 +269,106 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 				// Paste
 			}
 		}
-	}
-	
-	@Override
-	public void keyReleased(KeyEvent e) {
-		if(state == State.HAS_SELECTION && selection.size() == 1) {
-			LogicComponent comp = selection.get(0);
+		
+		if(state == State.HAS_SELECTION) {
+			// Remove blue selection rectangle
+			grid.setSelection(null);
 			
-			if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
-				if(comp instanceof LogicWireComponent) {
-					state = State.CREATE_CONNECTED_WIRE;
+			int ox = 0;
+			int oy = 0;
+			if(e.getKeyCode() == KeyEvent.VK_LEFT) ox--;
+			if(e.getKeyCode() == KeyEvent.VK_RIGHT) ox++;
+			if(e.getKeyCode() == KeyEvent.VK_UP) oy--;
+			if(e.getKeyCode() == KeyEvent.VK_DOWN) oy++;
+			
+			if(ox != 0 || oy != 0) {
+				boolean can_move = true;
+				Set<Long> set = new HashSet<>();
+				
+				for(LogicComponent comp : selection) {
+					set.add(comp.getLogicObject().getIndex());
 				}
-			}
-			
-			if(e.getKeyCode() == KeyEvent.VK_SHIFT) {
-				if(comp instanceof LogicWireComponent) {
-					state = State.CONNECT_WIRE;
+				
+				for(LogicComponent comp : selection) {
+					LogicObject object = comp.getLogicObject();
+					
+					int x = object.getX() + ox;
+					int y = object.getY() + oy;
+					
+					LogicObject collision = grid.system.getLogicObject(x, y);
+					if(collision != null && !set.contains(collision.getIndex())) {
+						can_move = false;
+						break;
+					}
+				}
+				
+				if(can_move) {
+					// GOOD: O(n)
+					Set<Long> move = new HashSet<>(set);
+					for(long idx : move) {
+						if(!set.contains(idx)) continue;
+						LogicObject object = grid.system.getLogicObject(idx);
+						LinkedList<LogicObject> list_front = new LinkedList<>();
+						list_front.push(object);
+						
+						while(!list_front.isEmpty()) {
+							LogicObject obj = list_front.getLast();
+							int x = obj.getX();
+							int y = obj.getY();
+							
+							LogicObject front = grid.system.getLogicObject(x + ox, y + oy);
+							if(front != null) {
+								list_front.add(front);
+								continue;
+							}
+							
+							// Remove last element
+							list_front.pollLast();
+							
+							// Remove this node from the list
+							set.remove(obj.getIndex());
+							if(!obj.setLocation(x + ox, y + oy)) {
+								throw new RuntimeException("Failed to move logic object even though it should work!");
+							}
+						}
+					}
+					
+					grid.repaint();
 				}
 			}
 		}
 	}
 	
 	@Override
-	public void mouseWheelMoved(MouseWheelEvent e) {
+	public void onKeyReleased(KeyEvent e) {
+		if(state == State.HAS_SELECTION && selection.size() == 1) {
+			LogicComponent comp = selection.get(0);
+			
+			if(comp instanceof LogicWireComponent) {
+				if(e.isControlDown()) {
+					if(e.getKeyCode() == KeyEvent.VK_W) {
+						state = State.CREATE_CONNECTED_WIRE;
+					}
+					
+					if(e.getKeyCode() == KeyEvent.VK_E) {
+						state = State.CONNECT_WIRE;
+					}
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void onMouseWheelMoved(LogicMouseEvent e) {
 		LogicComponent sel_logic = null;
 		if(!selection.isEmpty()) {
 			sel_logic = selection.get(0); // FIXME
 		}
 		
 		if(sel_logic != null && pressing) {
-			int rot = sel_logic.getRotation() + e.getWheelRotation();
-			sel_logic.setRotation(rot);
+			sel_logic.setRotation(
+				sel_logic.getRotation().moveClockwise(e.getWheelRotation())
+			);
 			grid.repaint();
 			return;
 		}
@@ -346,46 +399,5 @@ public class GridPanelListener implements MouseListener, MouseMotionListener, Mo
 		grid.setWorldPosition(world_x, world_y);
 		grid.setWorldZoom(zoom);
 		grid.repaint();
-	}
-	
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		
-	}
-	
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		
-	}
-	
-	@Override
-	public void mouseExited(MouseEvent e) {
-		
-	}
-	
-	@Override
-	public void keyTyped(KeyEvent e) {
-		
-	}
-	
-	public void setState(State state) {
-		this.state = state;
-	}
-	
-	public enum State {
-		NORMAL,
-		DISABLE_MOUSE,
-		
-		// Selection stuff
-		CREATE_SELECTION,
-		HAS_SELECTION,
-		
-		// Wire stuff
-		CONNECT_WIRE,
-		CREATE_CONNECTED_WIRE,
-		
-		// Spawning in new logic objects
-		CREATE_WIRE,
-		CREATE_GATE,
 	}
 }

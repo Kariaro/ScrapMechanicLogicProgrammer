@@ -20,7 +20,7 @@ public abstract class LogicComponent {
 	protected int x;
 	protected int y;
 	private boolean hasFocus;
-	private int rotation;
+	private LogicRotation rotation = LogicRotation.EAST;
 	
 	public LogicComponent() {
 		
@@ -50,7 +50,18 @@ public abstract class LogicComponent {
 		this.hasFocus = b;
 	}
 	
-	public int getRotation() {
+	/**
+	 * Set the rotation of this component. If {@code rotation} is
+	 * {@code null} no exception is thrown and no action will be performed.
+	 * 
+	 * @param rotation the new rotation
+	 */
+	public void setRotation(LogicRotation rotation) {
+		if(rotation == null) return;
+		this.rotation = rotation;
+	}
+	
+	public LogicRotation getRotation() {
 		return rotation;
 	}
 	
@@ -71,23 +82,6 @@ public abstract class LogicComponent {
 		return new Dimension(getWidth(), getHeight());
 	}
 	
-	/**
-	 * Set the rotation of this component
-	 * 
-	 * <pre>
-	 *   0: RIGHT
-	 *   1: DOWN
-	 *   2: LEFT
-	 *   3: UP
-	 * </pre>
-	 * 
-	 * @param type the new rotation
-	 */
-	public void setRotation(int rotation) {
-		this.rotation = rotation & 3;
-	}
-	
-	
 	private static final double ROT = Math.PI / 2.0;
 	
 	/**
@@ -105,7 +99,7 @@ public abstract class LogicComponent {
 		prePaintComponent();
 		
 		Graphics2D gr = (Graphics2D)g.create();
-		gr.rotate(ROT * rotation, x, y);
+		gr.rotate(ROT * (rotation.getIndex() - 1), x, y);
 		gr.translate(x - width / 2.0, y - height / 2.0);
 		paint(gr);
 		gr.dispose();

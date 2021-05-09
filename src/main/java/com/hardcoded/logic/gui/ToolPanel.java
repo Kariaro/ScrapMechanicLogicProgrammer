@@ -6,7 +6,7 @@ import java.awt.Dimension;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
-import com.hardcoded.logic.LogicGateType;
+import com.hardcoded.logic.LogicObjectType;
 
 /**
  * A toolbar panel
@@ -25,37 +25,37 @@ public class ToolPanel extends JPanel {
 		add(lblNewLabel);
 
 		JButton btn_xor = new JButton("XOR");
-		btn_xor.addActionListener((e) -> grid.setMouseCreate(LogicGateType.XOR));
+		btn_xor.addActionListener((e) -> grid.setMouseCreate(LogicObjectType.XOR));
 		btn_xor.setMaximumSize(new Dimension(100, 23));
 		btn_xor.setFocusable(false);
 		add(btn_xor);
 		
 		JButton btn_and = new JButton("AND");
-		btn_and.addActionListener((e) -> grid.setMouseCreate(LogicGateType.AND));
+		btn_and.addActionListener((e) -> grid.setMouseCreate(LogicObjectType.AND));
 		btn_and.setMaximumSize(new Dimension(100, 23));
 		btn_and.setFocusable(false);
 		add(btn_and);
 		
 		JButton btn_or = new JButton("OR");
-		btn_or.addActionListener((e) -> grid.setMouseCreate(LogicGateType.OR));
+		btn_or.addActionListener((e) -> grid.setMouseCreate(LogicObjectType.OR));
 		btn_or.setMaximumSize(new Dimension(100, 23));
 		btn_or.setFocusable(false);
 		add(btn_or);
 		
 		JButton btn_xnor = new JButton("XNOR");
-		btn_xnor.addActionListener((e) -> grid.setMouseCreate(LogicGateType.XNOR));
+		btn_xnor.addActionListener((e) -> grid.setMouseCreate(LogicObjectType.XNOR));
 		btn_xnor.setMaximumSize(new Dimension(100, 23));
 		btn_xnor.setFocusable(false);
 		add(btn_xnor);
 		
 		JButton btn_nand = new JButton("NAND");
-		btn_nand.addActionListener((e) -> grid.setMouseCreate(LogicGateType.NAND));
+		btn_nand.addActionListener((e) -> grid.setMouseCreate(LogicObjectType.NAND));
 		btn_nand.setMaximumSize(new Dimension(100, 23));
 		btn_nand.setFocusable(false);
 		add(btn_nand);
 		
 		JButton btn_nor = new JButton("NOR");
-		btn_nor.addActionListener((e) -> grid.setMouseCreate(LogicGateType.NOR));
+		btn_nor.addActionListener((e) -> grid.setMouseCreate(LogicObjectType.NOR));
 		btn_nor.setMaximumSize(new Dimension(100, 23));
 		btn_nor.setFocusable(false);
 		add(btn_nor);
@@ -72,6 +72,7 @@ public class ToolPanel extends JPanel {
 		add(btn_switch);
 		
 		JButton btn_wire = new JButton("Wire");
+		btn_wire.addActionListener((e) -> grid.setMouseCreate(LogicObjectType.WIRE));
 		btn_wire.setMaximumSize(new Dimension(100, 23));
 		btn_wire.setFocusable(false);
 		add(btn_wire);
